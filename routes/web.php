@@ -1,0 +1,34 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\OrderController;
+
+use App\Http\Controllers\DashboardController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Client Public Routes
+Route::get('/u/{token}', [OrderController::class, 'showUpload'])->name('client.upload');
+Route::post('/u/{token}', [OrderController::class, 'store'])->name('client.store');
+Route::get('/track/{token_view}', [OrderController::class, 'track'])->name('client.track');
+Route::get('/download/{token_view}', [OrderController::class, 'download'])->name('client.download');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/orders/{order}/claim', [DashboardController::class, 'claim'])->name('orders.claim');
+    Route::post('/orders/{order}/status', [DashboardController::class, 'updateStatus'])->name('orders.status');
+    Route::post('/orders/{order}/report', [DashboardController::class, 'uploadReport'])->name('orders.report');
+    Route::get('/orders/{order}/files/{file}', [DashboardController::class, 'downloadFile'])->name('orders.files.download');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__ . '/auth.php';
