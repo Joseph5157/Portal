@@ -4,8 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\OrderController;
-
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ClientDashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,6 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders/{order}/status', [DashboardController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/report', [DashboardController::class, 'uploadReport'])->name('orders.report');
     Route::get('/orders/{order}/files/{file}', [DashboardController::class, 'downloadFile'])->name('orders.files.download');
+
+    // Client Dashboard Routes
+    Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
+        Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/dashboard/upload', [ClientDashboardController::class, 'store'])->name('dashboard.upload');
+    });
 });
 
 Route::middleware('auth')->group(function () {

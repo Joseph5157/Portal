@@ -10,6 +10,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        if (auth()->user()->role === 'client') {
+            return redirect()->route('client.dashboard');
+        }
+
         $stats = [
             'available_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
             'active_jobs' => Order::where('status', 'processing')->where('claimed_by', auth()->id())->count(),
@@ -20,13 +24,13 @@ class DashboardController extends Controller
         ];
 
         // My Workspace (Claimed by current user and not delivered)
-        $workspaceOrders = Order::with(['client', 'files'])
+        $workspaceOrders = Order::with(['client', 'files', 'creator'])
             ->where('claimed_by', auth()->id())
             ->where('status', '!=', 'delivered')
             ->get();
 
         // Available Pool (Unclaimed pending orders)
-        $poolOrders = Order::with(['client', 'files'])
+        $poolOrders = Order::with(['client', 'files', 'creator'])
             ->whereNull('claimed_by')
             ->where('status', 'pending')
             ->latest()

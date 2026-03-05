@@ -37,6 +37,8 @@ class OrderController extends Controller
             'files_count' => count($request->file('files')),
             'status' => 'pending',
             'due_at' => now()->addMinutes(20),
+            'source' => 'link',
+            'client_link_id' => $link->id,
         ]);
 
         foreach ($request->file('files') as $file) {

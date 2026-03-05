@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'client_id',
     ];
 
     /**
@@ -49,5 +50,10 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class, 'claimed_by');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

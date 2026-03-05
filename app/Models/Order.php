@@ -16,7 +16,10 @@ class Order extends Model
         'claimed_by',
         'due_at',
         'delivered_at',
-        'is_downloaded'
+        'is_downloaded',
+        'source',
+        'created_by_user_id',
+        'client_link_id',
     ];
 
     protected $casts = [
@@ -43,6 +46,16 @@ class Order extends Model
     public function vendor()
     {
         return $this->belongsTo(User::class, 'claimed_by');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function link()
+    {
+        return $this->belongsTo(ClientLink::class, 'client_link_id');
     }
 
     public function getComputedStatusAttribute()
