@@ -15,7 +15,7 @@ class OrderController extends Controller
     {
         $link = ClientLink::where('token', $token)->where('is_active', true)->with('client')->firstOrFail();
         $client = $link->client;
-        $orders = Order::where('client_id', $client->id)->with('report')->latest()->get();
+        $orders = Order::where('client_id', $client->id)->with(['report', 'files'])->latest()->get();
         return view('client.upload', compact('link', 'client', 'orders'));
     }
 

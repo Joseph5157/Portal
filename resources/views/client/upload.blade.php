@@ -197,10 +197,19 @@
                                 </td>
                                 <td class="py-6">
                                     <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border
-                                                @if($order->computed_status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
-                                                @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
-                                                @else bg-blue-500/5 text-blue-500 border-blue-500/10 @endif">
-                                        {{ $order->computed_status == 'delivered' ? 'Ready' : $order->computed_status }}
+                                                        @if($order->status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
+                                                        @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
+                                                        @elseif($order->status == 'processing') bg-blue-500/5 text-blue-400 border-blue-500/10
+                                                        @else bg-slate-500/5 text-slate-400 border-slate-500/10 @endif">
+                                        @if($order->status == 'delivered')
+                                            Ready
+                                        @elseif($order->computed_status == 'overdue')
+                                            Overdue
+                                        @elseif($order->status == 'processing')
+                                            Processing
+                                        @else
+                                            Pending
+                                        @endif
                                     </span>
                                 </td>
                                 <td class="py-6">
@@ -220,7 +229,7 @@
                                             </div>
                                         @endif
 
-                                        @if($order->status == 'delivered')
+                                        @if($order->status == 'delivered' && $order->report)
                                             <a href="{{ route('client.download', $order->token_view) }}"
                                                 class="px-4 py-1.5 bg-[#ffd700]/5 text-[#ffd700] rounded-xl text-[10px] font-bold border border-[#ffd700]/10 flex items-center gap-2 hover:bg-[#ffd700]/10 transition-all">
                                                 <i data-lucide="download" class="w-3 h-3"></i> Report
@@ -321,7 +330,7 @@
                 const diff = dueAt - now;
 
                 if (diff <= 0) {
-                    timer.parentElement.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 text-amber-500 animate-spin"></i><span class="text-[10px] text-amber-500">Wait...</span>`;
+                    timer.parentElement.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 text-amber-500 animate-spin"></i><span class="text-[10px] text-amber-500 font-bold">ETA exceeded — report is being finalized.</span>`;
                     lucide.createIcons();
                     return;
                 }

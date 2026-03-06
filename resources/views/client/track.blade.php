@@ -126,7 +126,7 @@
         if (status !== 'delivered') {
             setTimeout(() => {
                 window.location.reload();
-            }, 30000); // 30 seconds
+            }, 60000); // 60 seconds — consistent with client dashboard
         }
     </script>
 </body>

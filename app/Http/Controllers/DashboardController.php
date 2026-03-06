@@ -155,8 +155,13 @@ class DashboardController extends Controller
                 'plag_percentage' => $request->plag_percentage,
             ]);
 
-            // Automatically deliver after upload as per original controller behavior
-            $this->workflowService->deliver($order, auth()->user());
+            // Auto-promote to processing if still pending before delivering
+            if ($order->fresh()->status === 'pending') {
+                $this->workflowService->startProcessing($order->fresh(), auth()->user());
+            }
+
+            // Automatically deliver after upload
+            $this->workflowService->deliver($order->fresh(), auth()->user());
 
             return back()->with('success', 'Report uploaded and order delivered successfully.');
         } catch (\Exception $e) {
