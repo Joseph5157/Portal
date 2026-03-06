@@ -25,7 +25,7 @@ class OrderController extends Controller
         $client = $link->client;
 
         $request->validate([
-            'files.*' => 'required|file|mimes:pdf,doc,docx,zip|max:51200', // 50MB max
+            'files.*' => 'required|file|mimes:pdf,doc,docx,zip|max:102400', // 100MB max
             'files' => 'required|array|min:1'
         ]);
 

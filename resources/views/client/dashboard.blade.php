@@ -158,7 +158,8 @@
                         </div>
                     </div>
                     <h3 class="text-4xl font-bold text-white mb-1">
-                        {{ $orders->where('status', '!=', 'delivered')->count() }}</h3>
+                        {{ $orders->where('status', '!=', 'delivered')->count() }}
+                    </h3>
                     <p class="text-xs text-slate-500">In Processing Flow</p>
                 </div>
 
@@ -264,10 +265,18 @@
                                     <div class="text-right">
                                         <span
                                             class="inline-block px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.15em]
-                                                @if($order->computed_status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
-                                                @elseif($order->computed_status == 'overdue') bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
-                                                @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
-                                            {{ $order->computed_status == 'delivered' ? 'Ready' : $order->computed_status }}
+                                                        @if($order->status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
+                                                        @elseif($order->computed_status == 'overdue') bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
+                                                        @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
+                                            @if($order->status == 'delivered')
+                                                Ready
+                                            @elseif($order->status == 'processing')
+                                                Processing
+                                            @elseif($order->computed_status == 'overdue')
+                                                Overdue
+                                            @else
+                                                Pending
+                                            @endif
                                         </span>
                                     </div>
                                 </div>
@@ -289,16 +298,31 @@
                                                 </div>
                                             @endif
                                         </div>
-                                        <a href="{{ route('client.download', $order->token_view) }}"
-                                            class="p-2.5 bg-indigo-500 rounded-xl text-white hover:bg-indigo-400 active:scale-95 transition-all shadow-lg shadow-indigo-500/20">
-                                            <i data-lucide="download" class="w-4 h-4"></i>
-                                        </a>
+                                        @if($order->report)
+                                            <a href="{{ route('client.download', $order->token_view) }}"
+                                                class="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 active:scale-95 transition-all shadow-lg shadow-indigo-500/20">
+                                                <i data-lucide="download" class="w-4 h-4"></i>
+                                            </a>
+                                        @endif
                                     </div>
                                 @else
-                                    <div
-                                        class="mt-4 flex items-center gap-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                                        Analysing your document...
+                                    <div class="mt-4 flex items-center justify-between">
+                                        <div
+                                            class="flex items-center gap-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                                            @if($order->status == 'processing')
+                                                <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                                                Processing...
+                                            @else
+                                                <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-pulse"></span>
+                                                In Queue...
+                                            @endif
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
+                                            <i data-lucide="clock" class="w-3 h-3 text-indigo-400"></i>
+                                            <span class="countdown-timer text-[10px] font-mono text-indigo-400"
+                                                data-due="{{ $order->due_at->toIso8601String() }}">--:--</span>
+                                        </div>
                                     </div>
                                 @endif
                             </div>
@@ -324,6 +348,38 @@
 
     <script>
         lucide.createIcons();
+
+        function updateTimers() {
+            const timers = document.querySelectorAll('.countdown-timer');
+            timers.forEach(timer => {
+                const dueAt = new Date(timer.dataset.due).getTime();
+                const now = new Date().getTime();
+                const diff = dueAt - now;
+
+                if (diff <= 0) {
+                    timer.parentElement.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 text-amber-500 animate-spin"></i><span class="text-[10px] text-amber-500 font-bold">ETA exceeded — report is being finalized.</span>`;
+                    // Update parent container classes for overdue look
+                    const card = timer.closest('.premium-card');
+                    if (card) {
+                        const statusBadge = card.querySelector('span[class*="status-glow"]');
+                        if (statusBadge && !statusBadge.classList.contains('status-glow-delivered')) {
+                            statusBadge.className = 'inline-block px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.15em] bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue';
+                            statusBadge.textContent = 'Overdue';
+                        }
+                    }
+                    lucide.createIcons();
+                    return;
+                }
+
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            });
+        }
+
+        setInterval(updateTimers, 1000);
+        updateTimers();
     </script>
 </body>
 

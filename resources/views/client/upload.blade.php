@@ -190,15 +190,16 @@
                                                 {{ $order->files->first() ? basename($order->files->first()->file_path) : 'Unnamed Document' }}
                                             </h4>
                                             <p class="text-[10px] text-slate-500 mt-1 font-mono uppercase">
-                                                {{ $order->created_at->format('d M, h:i A') }}</p>
+                                                {{ $order->created_at->format('d M, h:i A') }}
+                                            </p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="py-6">
                                     <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border
-                                        @if($order->computed_status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
-                                        @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
-                                        @else bg-blue-500/5 text-blue-500 border-blue-500/10 @endif">
+                                                @if($order->computed_status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
+                                                @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
+                                                @else bg-blue-500/5 text-blue-500 border-blue-500/10 @endif">
                                         {{ $order->computed_status == 'delivered' ? 'Ready' : $order->computed_status }}
                                     </span>
                                 </td>
@@ -225,10 +226,12 @@
                                                 <i data-lucide="download" class="w-3 h-3"></i> Report
                                             </a>
                                         @else
-                                            <button disabled
+                                            <div
                                                 class="px-4 py-1.5 bg-white/5 text-slate-500 rounded-xl text-[10px] font-bold border border-white/10 flex items-center gap-2">
-                                                <i data-lucide="lock" class="w-3 h-3"></i> Processing
-                                            </button>
+                                                <i data-lucide="clock" class="w-3 h-3 text-indigo-400"></i>
+                                                <span class="countdown-timer text-[10px] font-mono text-indigo-400"
+                                                    data-due="{{ $order->due_at->toIso8601String() }}">--:--</span>
+                                            </div>
                                         @endif
 
                                         <button
@@ -309,6 +312,37 @@
 
     <script>
         lucide.createIcons();
+
+        function updateTimers() {
+            const timers = document.querySelectorAll('.countdown-timer');
+            timers.forEach(timer => {
+                const dueAt = new Date(timer.dataset.due).getTime();
+                const now = new Date().getTime();
+                const diff = dueAt - now;
+
+                if (diff <= 0) {
+                    timer.parentElement.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 text-amber-500 animate-spin"></i><span class="text-[10px] text-amber-500">Wait...</span>`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            });
+        }
+
+        setInterval(updateTimers, 1000);
+        updateTimers();
+
+        // Auto reload if any pending orders
+        const pending = document.querySelector('.countdown-timer');
+        if (pending) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 60000); // 1 minute auto refresh
+        }
     </script>
 </body>
 

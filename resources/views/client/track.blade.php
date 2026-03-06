@@ -103,8 +103,8 @@
 
             if (distance < 0) {
                 if (status !== 'delivered') {
-                    countdownElement.innerHTML = "EXCEEDED";
-                    countdownElement.classList.add('text-red-500');
+                    countdownElement.innerHTML = `<span class="text-amber-500 text-2xl">Finalizing...</span>`;
+                    countdownElement.classList.add('animate-pulse');
                 } else {
                     countdownElement.innerHTML = "00:00";
                 }

@@ -58,6 +58,11 @@ class Order extends Model
         return $this->belongsTo(ClientLink::class, 'client_link_id');
     }
 
+    public function orderLogs()
+    {
+        return $this->hasMany(OrderLog::class);
+    }
+
     public function getComputedStatusAttribute()
     {
         if ($this->status !== 'delivered' && now()->gt($this->due_at)) {

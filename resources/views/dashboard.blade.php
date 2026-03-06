@@ -30,7 +30,7 @@
 
         <main class="max-w-7xl mx-auto px-8 py-10 space-y-8">
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <!-- Available Pool -->
                 <div
                     class="bg-[#121212] border border-white/5 p-8 rounded-[2rem] flex justify-between items-center group hover:border-white/10 transition-all">
@@ -78,6 +78,21 @@
                         <i data-lucide="check" class="w-20 h-20 text-white/[0.02] absolute -right-6 -bottom-6"></i>
                     </div>
                 </div>
+
+                <!-- Overdue Count -->
+                <div
+                    class="bg-[#121212] border border-white/5 p-8 rounded-[2rem] flex justify-between items-center group hover:border-red-500/20 transition-all relative overflow-hidden">
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Overdue Tasks</p>
+                        <h2
+                            class="text-5xl font-bold @if($stats['overdue_count'] > 0) text-red-500 @else text-white @endif tracking-tighter">
+                            {{ $stats['overdue_count'] }}</h2>
+                    </div>
+                    <div
+                        class="w-12 h-12 @if($stats['overdue_count'] > 0) bg-red-500/10 text-red-500 @else bg-white/5 text-slate-500 @endif rounded-2xl flex items-center justify-center transition-colors">
+                        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -108,7 +123,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/[0.02]">
-                                    @forelse($workspaceOrders as $order)
+                                    @forelse($myWorkspace as $order)
                                         <tr class="group">
                                             <td class="py-10">
                                                 <div class="flex items-center gap-4">
@@ -136,10 +151,12 @@
                                             </td>
                                             <td class="py-10 text-center">
                                                 <div class="flex items-center justify-center gap-3">
-                                                    <a href="{{ route('orders.files.download', [$order, $order->files->first()]) }}"
-                                                        class="px-6 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 border border-indigo-600/10">
-                                                        <i data-lucide="download" class="w-3.5 h-3.5"></i> DOWNLOAD
-                                                    </a>
+                                                    @if($order->files->first())
+                                                        <a href="{{ route('orders.files.download', [$order, $order->files->first()]) }}"
+                                                            class="px-6 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 border border-indigo-600/10">
+                                                            <i data-lucide="download" class="w-3.5 h-3.5"></i> DOWNLOAD
+                                                        </a>
+                                                    @endif
                                                     <span
                                                         class="w-6 h-6 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center text-[10px] font-bold border border-red-600/10">{{ $order->files_count }}</span>
                                                 </div>
@@ -196,7 +213,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/[0.02]">
-                                    @forelse($poolOrders as $order)
+                                    @forelse($availableFiles as $order)
                                         <tr class="group">
                                             <td class="py-8">
                                                 <h4 class="text-xs font-bold text-slate-400">
@@ -275,10 +292,10 @@
                                     <div class="flex items-center gap-4">
                                         <div
                                             class="w-10 h-10 rounded-xl flex items-center justify-center relative
-                                                    @if($index == 0) bg-[#ffd70033] @elseif($index == 1) bg-blue-500/10 @else bg-white/5 @endif">
+                                                            @if($index == 0) bg-[#ffd70033] @elseif($index == 1) bg-blue-500/10 @else bg-white/5 @endif">
                                             <span
                                                 class="text-[10px] font-bold
-                                                        @if($index == 0) text-[#ffd700] @elseif($index == 1) text-blue-400 @else text-slate-500 @endif">
+                                                                @if($index == 0) text-[#ffd700] @elseif($index == 1) text-blue-400 @else text-slate-500 @endif">
                                                 @if($index == 0) <i data-lucide="medal" class="w-5 h-5"></i>
                                                 @elseif($index == 1) <i data-lucide="award" class="w-5 h-5"></i> @else <i
                                                 data-lucide="user" class="w-5 h-5"></i> @endif
@@ -303,7 +320,7 @@
         </main>
 
         <!-- Tooltips/Modals Container -->
-        @foreach($workspaceOrders as $order)
+        @foreach($myWorkspace as $order)
             @if($order->status == 'processing')
                 <div id="upload-modal-{{ $order->id }}"
                     class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">

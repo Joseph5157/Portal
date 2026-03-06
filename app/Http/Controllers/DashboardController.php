@@ -8,112 +8,160 @@ use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
+    protected $workflowService;
+
+    public function __construct(\App\Services\OrderWorkflowService $workflowService)
+    {
+        $this->workflowService = $workflowService;
+    }
+
     public function index()
     {
-        if (auth()->user()->role === 'client') {
+        $user = auth()->user();
+
+        if ($user->role === 'client') {
             return redirect()->route('client.dashboard');
         }
 
+        if ($user->role === 'admin') {
+            return $this->adminDashboard();
+        }
+
+        // Vendor Dashboard Logic
         $stats = [
             'available_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
-            'active_jobs' => Order::where('status', 'processing')->where('claimed_by', auth()->id())->count(),
+            'active_jobs' => Order::where('status', 'processing')->where('claimed_by', $user->id)->count(),
             'total_checked_today' => Order::where('status', 'delivered')
-                ->where('claimed_by', auth()->id())
+                ->where('claimed_by', $user->id)
                 ->whereDate('delivered_at', today())
+                ->count(),
+            'overdue_count' => Order::where('status', '!=', 'delivered')
+                ->where('due_at', '<', now())
                 ->count(),
         ];
 
-        // My Workspace (Claimed by current user and not delivered)
-        $workspaceOrders = Order::with(['client', 'files', 'creator'])
-            ->where('claimed_by', auth()->id())
-            ->where('status', '!=', 'delivered')
+        $myWorkspace = Order::with(['client', 'files', 'report', 'creator'])
+            ->where('claimed_by', $user->id)
+            ->whereIn('status', ['pending', 'processing'])
             ->get();
 
-        // Available Pool (Unclaimed pending orders)
-        $poolOrders = Order::with(['client', 'files', 'creator'])
+        $availableFiles = Order::with(['client', 'files', 'creator'])
             ->whereNull('claimed_by')
             ->where('status', 'pending')
             ->latest()
             ->get();
 
-        // Recent History (Last 5 delivered by current user)
-        $recentHistory = Order::with(['client', 'files'])
-            ->where('claimed_by', auth()->id())
+        $recentHistory = Order::with(['client', 'files', 'report'])
+            ->where('claimed_by', $user->id)
             ->where('status', 'delivered')
             ->latest('delivered_at')
             ->take(5)
             ->get();
 
-        // Top Agents Leaderboard
         $topAgents = \App\Models\User::withCount([
             'orders as jobs_count' => function ($query) {
-                $query->where('status', 'delivered');
+                $query->where('status', 'delivered')
+                    ->whereDate('delivered_at', today());
             }
         ])
+            ->where('role', 'vendor')
             ->orderByDesc('jobs_count')
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('stats', 'workspaceOrders', 'poolOrders', 'recentHistory', 'topAgents'));
+        return view('dashboard', compact('stats', 'myWorkspace', 'availableFiles', 'recentHistory', 'topAgents'));
+    }
+
+    protected function adminDashboard()
+    {
+        $stats = [
+            'total_processed_today' => Order::where('status', 'delivered')
+                ->whereDate('delivered_at', today())
+                ->count(),
+            'pending_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
+            'active_vendors' => \App\Models\User::where('role', 'vendor')
+                ->whereHas('orders', function ($q) {
+                    $q->whereDate('delivered_at', today());
+                })->count(),
+            'new_clients_today' => \App\Models\Client::whereDate('created_at', today())->count(),
+            'total_clients' => \App\Models\Client::count(),
+            'total_vendors' => \App\Models\User::where('role', 'vendor')->count(),
+        ];
+
+        $vendorPerformance = \App\Models\User::where('role', 'vendor')
+            ->withCount([
+                'orders as total_jobs' => function ($q) {
+                    $q->where('status', 'delivered');
+                }
+            ])
+            ->withCount([
+                'orders as today_jobs' => function ($q) {
+                    $q->where('status', 'delivered')->whereDate('delivered_at', today());
+                }
+            ])
+            ->orderByDesc('today_jobs')
+            ->take(10)
+            ->get();
+
+        $recentOrders = Order::with(['client', 'vendor'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('admin.dashboard', compact('stats', 'vendorPerformance', 'recentOrders'));
     }
 
     public function claim(Order $order)
     {
-        if ($order->claimed_by && auth()->user()->role !== 'admin') {
-            return back()->with('error', 'Order already claimed.');
+        try {
+            $this->workflowService->claim($order, auth()->user());
+            return back()->with('success', 'Order claimed successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $order->update(['claimed_by' => auth()->id()]);
-        return back()->with('success', 'Order claimed successfully.');
     }
 
     public function updateStatus(Request $request, Order $order)
     {
-        if ($order->claimed_by !== auth()->id() && auth()->user()->role !== 'admin') {
-            abort(403);
-        }
-
         $request->validate(['status' => 'required|in:processing,delivered']);
 
-        if ($request->status == 'delivered') {
-            if (!$order->report) {
-                return back()->with('error', 'Cannot mark as delivered without uploading report.');
+        try {
+            if ($request->status === 'processing') {
+                $this->workflowService->startProcessing($order, auth()->user());
+            } elseif ($request->status === 'delivered') {
+                $this->workflowService->deliver($order, auth()->user());
             }
-            $order->update([
-                'status' => 'delivered',
-                'delivered_at' => now()
-            ]);
-        } else {
-            $order->update(['status' => $request->status]);
-        }
 
-        return back()->with('success', 'Status updated.');
+            return back()->with('success', 'Status updated.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function uploadReport(Request $request, Order $order)
     {
-        if ($order->claimed_by !== auth()->id() && auth()->user()->role !== 'admin') {
-            abort(403);
-        }
-
         $request->validate([
-            'report' => 'required|file|mimes:pdf|max:10240', // 10MB PDF
+            'report' => 'required|file|mimes:pdf|max:102400', // 100MB PDF
             'ai_percentage' => 'nullable|numeric|min:0|max:100',
             'plag_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        $path = $request->file('report')->store('reports/' . $order->id);
+        try {
+            $path = $request->file('report')->store('reports/' . $order->id);
 
-        $order->report()->updateOrCreate([], [
-            'report_path' => $path
-        ]);
+            $this->workflowService->uploadReport($order, auth()->user(), [
+                'report_path' => $path,
+                'ai_percentage' => $request->ai_percentage,
+                'plag_percentage' => $request->plag_percentage,
+            ]);
 
-        $order->update([
-            'ai_percentage' => $request->ai_percentage,
-            'plag_percentage' => $request->plag_percentage,
-        ]);
+            // Automatically deliver after upload as per original controller behavior
+            $this->workflowService->deliver($order, auth()->user());
 
-        return back()->with('success', 'Report uploaded.');
+            return back()->with('success', 'Report uploaded and order delivered successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function downloadFile(Order $order, \App\Models\OrderFile $file)
