@@ -19,6 +19,11 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
+        // Redirect admins to the bespoke Admin Dashboard
+        if ($user->role === 'admin') {
+            return $this->adminDashboard();
+        }
+
         // Vendor Dashboard Logic
         $stats = [
             'available_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
@@ -50,18 +55,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $topAgents = \App\Models\User::withCount([
-            'orders as jobs_count' => function ($query) {
-                $query->where('status', 'delivered')
-                    ->whereDate('delivered_at', today());
-            }
-        ])
-            ->where('role', 'vendor')
-            ->orderByDesc('jobs_count')
-            ->take(5)
-            ->get();
-
-        return view('dashboard', compact('stats', 'myWorkspace', 'availableFiles', 'recentHistory', 'topAgents'));
+        return view('dashboard', compact('stats', 'myWorkspace', 'availableFiles', 'recentHistory'));
     }
 
     protected function adminDashboard()

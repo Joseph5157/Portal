@@ -1,5 +1,24 @@
 <x-app-layout>
     <div class="min-h-screen bg-[#08080a] text-slate-300 font-['Outfit'] pb-20">
+
+        {{-- Flash / Error Banners --}}
+        @if(session('success'))
+            <div
+                class="bg-green-500/10 border border-green-500/20 text-green-500 px-6 py-4 rounded-2xl text-sm font-bold flex items-center gap-3 mb-8 mx-10 mt-6">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+        @if($errors->any())
+            <div
+                class="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl text-sm font-bold mb-8 mx-10 mt-6">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <!-- Admin Header -->
         <nav
             class="flex justify-between items-center px-10 py-6 border-b border-white/5 bg-[#0a0a0c]/50 backdrop-blur-xl sticky top-0 z-50">
@@ -190,7 +209,7 @@
                                 <div class="relative pl-8 group">
                                     <div
                                         class="absolute left-0 top-1 w-1.5 h-1.5 bg-red-500 rounded-full z-10 
-                                                    @if($order->status == 'delivered') bg-green-500 @elseif($order->status == 'pending') bg-amber-500 @endif">
+                                                        @if($order->status == 'delivered') bg-green-500 @elseif($order->status == 'pending') bg-amber-500 @endif">
                                     </div>
                                     <div class="absolute left-[2px] top-4 w-px h-full bg-white/5 group-last:hidden"></div>
 
@@ -208,7 +227,8 @@
                                         </h4>
                                         @if($order->vendor)
                                             <p class="text-[9px] text-red-500/50 font-bold uppercase tracking-widest">Signed:
-                                                {{ $order->vendor->name }}</p>
+                                                {{ $order->vendor->name }}
+                                            </p>
                                         @endif
                                     </div>
                                 </div>
@@ -227,16 +247,16 @@
 
             <!-- Global Search & Quick Actions -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div
-                    class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group">
+                <button onclick="document.getElementById('create-account-modal').classList.remove('hidden')"
+                    class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group text-left w-full">
                     <div
                         class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 group-hover:text-red-500 transition-colors">
                         <i data-lucide="user-plus" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-white font-bold">Manage Vendors</h3>
-                    <p class="text-xs text-slate-600 font-medium">Add, remove or update permissions for your processing
-                        workforce.</p>
-                </div>
+                    <h3 class="text-white font-bold">Issue New Account</h3>
+                    <p class="text-xs text-slate-600 font-medium">Create vendor, client, or admin accounts and
+                        automatically provision client profiles.</p>
+                </button>
 
                 <div
                     class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group">
@@ -267,6 +287,77 @@
                 Active</p>
         </footer>
     </div>
+
+    {{-- Issue New Account Modal --}}
+    <div id="create-account-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-[#0a0a0c] border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl"
+            onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 border border-red-500/20">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold">Provision Account</h3>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">System Access</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('create-account-modal').classList.add('hidden')"
+                    class="text-slate-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('admin.accounts.store') }}" method="POST" class="space-y-5">
+                @csrf
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Account
+                        Type</label>
+                    <select name="role" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50 appearance-none">
+                        <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }} class="bg-[#0a0a0c]">
+                            Processing Vendor</option>
+                        <option value="client" {{ old('role') === 'client' ? 'selected' : '' }} class="bg-[#0a0a0c]">
+                            Client Organization</option>
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }} class="bg-[#0a0a0c]">System
+                            Admin</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Full Name /
+                        Org Name</label>
+                    <input type="text" name="name" value="{{ old('name') }}" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Email
+                        Address</label>
+                    <input type="email" name="email" value="{{ old('email') }}" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Temporary
+                        Password</label>
+                    <input type="password" name="password" required
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50 transition-colors">
+                </div>
+                <div class="pt-4 mt-8 border-t border-white/5">
+                    <button type="submit"
+                        class="w-full py-4 bg-red-600/10 hover:bg-red-600/20 text-red-500 text-[10px] font-bold uppercase tracking-[0.3em] rounded-xl border border-red-600/20 transition-all flex justify-center items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Execute Provisioning
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Re-open modal on validation failure --}}
+    @if($errors->any())
+        <script>document.getElementById('create-account-modal').classList.remove('hidden');</script>
+    @endif
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ClientDashboardController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -32,6 +33,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
         Route::post('/dashboard/upload', [ClientDashboardController::class, 'store'])->name('dashboard.upload');
     });
+
+
+});
+
+// Admin Routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/accounts/store', [AdminController::class, 'storeAccount'])->name('accounts.store');
 });
 
 Route::middleware('auth')->group(function () {

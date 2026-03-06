@@ -365,54 +365,6 @@
                 </div>
             </div>
 
-            {{-- Top Agents --}}
-            <div id="agents" class="bg-[#13151c] border border-white/[0.06] rounded-2xl overflow-hidden">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                        <h2 class="text-sm font-semibold text-white">Top Agents</h2>
-                    </div>
-                    <span class="text-[9px] text-slate-600 font-semibold uppercase tracking-widest">Today</span>
-                </div>
-                <div class="divide-y divide-white/[0.04]">
-                    @forelse($topAgents as $index => $agent)
-                        @php
-                            $isMe = $agent->id == auth()->id();
-                            $maxJobs = $topAgents->max('jobs_count') ?: 1;
-                            $pct = max(8, round(($agent->jobs_count / $maxJobs) * 100));
-                            $rankIcon = $index === 0 ? '🥇' : ($index === 1 ? '🥈' : ($index === 2 ? '🥉' : '#' . ($index + 1)));
-                        @endphp
-                        <div class="px-5 py-3 hover:bg-white/[0.02] transition-colors">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <span class="text-sm leading-none flex-shrink-0">{{ $rankIcon }}</span>
-                                    <p
-                                        class="text-[11px] font-semibold truncate @if($isMe) text-indigo-400 @else text-slate-300 @endif">
-                                        @if($isMe) {{ auth()->user()->name }} <span
-                                            class="text-indigo-500 text-[9px]">(you)</span>
-                                        @else {{ substr($agent->name, 0, 1) }}{{ str_repeat('·', 6) }}
-                                        @endif
-                                    </p>
-                                </div>
-                                <span
-                                    class="text-xs font-bold tabular-nums @if($isMe) text-indigo-400 @else text-slate-400 @endif flex-shrink-0">{{ $agent->jobs_count }}</span>
-                            </div>
-                            <div class="w-full bg-white/[0.04] rounded-full h-0.5">
-                                <div class="h-0.5 rounded-full @if($isMe) bg-indigo-500 @elseif($index === 0) bg-amber-400 @else bg-white/20 @endif"
-                                    style="width: {{ $pct }}%"></div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="px-5 py-10 text-center">
-                            <p class="text-[10px] text-slate-600 font-semibold">No activity today</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
         </div>{{-- end right col --}}
 
     </div>{{-- end grid --}}
