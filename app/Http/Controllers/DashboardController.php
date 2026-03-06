@@ -19,14 +19,6 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'client') {
-            return redirect()->route('client.dashboard');
-        }
-
-        if ($user->role === 'admin') {
-            return $this->adminDashboard();
-        }
-
         // Vendor Dashboard Logic
         $stats = [
             'available_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
@@ -40,12 +32,12 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
-        $myWorkspace = Order::with(['client', 'files', 'report', 'creator'])
+        $myWorkspace = Order::with(['client', 'files', 'report', 'vendor'])
             ->where('claimed_by', $user->id)
             ->whereIn('status', ['pending', 'processing'])
             ->get();
 
-        $availableFiles = Order::with(['client', 'files', 'creator'])
+        $availableFiles = Order::with(['client', 'files', 'vendor'])
             ->whereNull('claimed_by')
             ->where('status', 'pending')
             ->latest()

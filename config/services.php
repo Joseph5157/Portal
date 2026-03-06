@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'portal' => [
+        'default_sla_minutes' => env('PORTAL_SLA_MINUTES', 20),
+    ],
+
 ];

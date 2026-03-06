@@ -65,9 +65,20 @@ class Order extends Model
 
     public function getComputedStatusAttribute()
     {
-        if ($this->status !== 'delivered' && now()->gt($this->due_at)) {
+        if ($this->status === 'delivered')
+            return 'delivered';
+        if ($this->status === 'processing')
+            return 'processing';
+        if ($this->due_at && $this->due_at->isPast())
             return 'overdue';
-        }
-        return $this->status;
+
+        return 'pending';
+    }
+
+    public function getIsOverdueAttribute(): bool
+    {
+        return $this->due_at
+            && $this->status !== 'delivered'
+            && now()->gt($this->due_at);
     }
 }

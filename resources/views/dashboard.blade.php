@@ -96,13 +96,25 @@
                                 class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">{{ $myWorkspace->count() }}</span>
                         @endif
                     </div>
-                    <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                        <svg class="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        20 min ETA
-                    </div>
+                    @if($myWorkspace->count() > 0)
+                        @php
+                            $minutes = $myWorkspace->map(function($order) {
+                                return $order->due_at ? max(0, now()->diffInMinutes($order->due_at, false)) : 0;
+                            })->sort()->values()->pipe(function($sorted) {
+                                $count = $sorted->count();
+                                if ($count === 0) return 0;
+                                $middle = floor($count / 2);
+                                return $count % 2 ? $sorted[$middle] : ($sorted[$middle - 1] + $sorted[$middle]) / 2;
+                            });
+                        @endphp
+                        <div class="flex items-center gap-1.5 text-[10px] font-semibold @if($minutes < 5) text-red-400 @else text-slate-500 @endif">
+                            <svg class="w-3 h-3 @if($minutes < 5) text-red-500 @else text-indigo-500 @endif" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            ~{{ round($minutes) }} min ETA (Median)
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Table --}}
@@ -118,7 +130,7 @@
                     </thead>
                     <tbody class="divide-y divide-white/[0.04]">
                         @forelse($myWorkspace as $order)
-                            @php $isOverdue = $order->due_at && $order->due_at->isPast() && $order->status !== 'delivered'; @endphp
+                            @php $isOverdue = $order->is_overdue; @endphp
                             <tr class="hover:bg-white/[0.02] transition-colors group">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">

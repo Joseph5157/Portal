@@ -61,22 +61,33 @@
         </div>
 
         <nav class="flex-1 space-y-2">
-            <a href="#"
-                class="flex items-center gap-4 px-8 py-4 text-sm font-medium sidebar-link-active transition-all">
+            <div class="flex items-center gap-4 px-8 py-4 text-sm font-medium sidebar-link-active transition-all">
                 <i data-lucide="layout-grid" class="w-5 h-5"></i> Dashboard
-            </a>
-            <a href="#"
-                class="flex items-center gap-4 px-8 py-4 text-sm font-medium hover:text-white hover:bg-white/5 transition-all">
-                <i data-lucide="history" class="w-5 h-5"></i> Order History
-            </a>
-            <a href="#"
-                class="flex items-center gap-4 px-8 py-4 text-sm font-medium hover:text-white hover:bg-white/5 transition-all">
-                <i data-lucide="credit-card" class="w-5 h-5"></i> Subscription
-            </a>
-            <a href="#"
-                class="flex items-center gap-4 px-8 py-4 text-sm font-medium hover:text-white hover:bg-white/5 transition-all">
-                <i data-lucide="settings" class="w-5 h-5"></i> Settings
-            </a>
+            </div>
+            <div
+                class="flex items-center justify-between px-8 py-4 text-sm font-medium text-slate-600 cursor-not-allowed select-none">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="history" class="w-5 h-5"></i> Order History
+                </div>
+                <span
+                    class="text-[8px] font-black uppercase tracking-widest text-indigo-500/50 bg-indigo-500/5 border border-indigo-500/10 px-1.5 py-0.5 rounded">Soon</span>
+            </div>
+            <div
+                class="flex items-center justify-between px-8 py-4 text-sm font-medium text-slate-600 cursor-not-allowed select-none">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i> Subscription
+                </div>
+                <span
+                    class="text-[8px] font-black uppercase tracking-widest text-indigo-500/50 bg-indigo-500/5 border border-indigo-500/10 px-1.5 py-0.5 rounded">Soon</span>
+            </div>
+            <div
+                class="flex items-center justify-between px-8 py-4 text-sm font-medium text-slate-600 cursor-not-allowed select-none">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Settings
+                </div>
+                <span
+                    class="text-[8px] font-black uppercase tracking-widest text-indigo-500/50 bg-indigo-500/5 border border-indigo-500/10 px-1.5 py-0.5 rounded">Soon</span>
+            </div>
         </nav>
 
         <div class="p-6">
@@ -239,9 +250,9 @@
                 <div class="lg:col-span-5 space-y-6">
                     <div class="flex items-center justify-between px-2">
                         <h2 class="text-sm font-bold text-white uppercase tracking-widest">Recent Activity</h2>
-                        <a href="#"
-                            class="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase">View
-                            All</a>
+                        <span
+                            class="text-[8px] font-black uppercase tracking-widest text-indigo-500/40 bg-indigo-500/5 border border-indigo-500/10 px-2 py-0.5 rounded cursor-not-allowed">Coming
+                            Soon</span>
                     </div>
 
                     <div class="space-y-4">
@@ -265,14 +276,14 @@
                                     <div class="text-right">
                                         <span
                                             class="inline-block px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.15em]
-                                                        @if($order->status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
-                                                        @elseif($order->computed_status == 'overdue') bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
-                                                        @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
+                                                            @if($order->status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
+                                                            @elseif($order->is_overdue) bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
+                                                            @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
                                             @if($order->status == 'delivered')
                                                 Ready
                                             @elseif($order->status == 'processing')
                                                 Processing
-                                            @elseif($order->computed_status == 'overdue')
+                                            @elseif($order->is_overdue)
                                                 Overdue
                                             @else
                                                 Pending
@@ -284,16 +295,18 @@
                                 @if($order->status == 'delivered')
                                     <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
                                         <div class="flex gap-4">
-                                            @if($order->ai_percentage !== null)
+                                            @if($order->report?->ai_percentage !== null)
                                                 <div class="text-center">
                                                     <p class="text-[8px] font-bold text-slate-700 uppercase">AI Score</p>
-                                                    <p class="text-xs font-bold text-red-400">{{ (int) $order->ai_percentage }}%</p>
+                                                    <p class="text-xs font-bold text-red-400">
+                                                        {{ (int) $order->report?->ai_percentage }}%</p>
                                                 </div>
                                             @endif
-                                            @if($order->plag_percentage !== null)
+                                            @if($order->report?->plag_percentage !== null)
                                                 <div class="text-center">
                                                     <p class="text-[8px] font-bold text-slate-700 uppercase">Plagiarism</p>
-                                                    <p class="text-xs font-bold text-blue-400">{{ (int) $order->plag_percentage }}%
+                                                    <p class="text-xs font-bold text-blue-400">
+                                                        {{ (int) $order->report?->plag_percentage }}%
                                                     </p>
                                                 </div>
                                             @endif

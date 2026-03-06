@@ -14,10 +14,6 @@ class ClientDashboardController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'client' && $user->role !== 'admin') {
-            return redirect()->route('dashboard')->with('error', 'Only clients or admins can access this dashboard.');
-        }
-
         $client = $user->client ?? \App\Models\Client::first();
 
         if (!$client) {
@@ -59,7 +55,7 @@ class ClientDashboardController extends Controller
             'token_view' => $tokenView,
             'files_count' => count($request->file('files')),
             'status' => 'pending',
-            'due_at' => now()->addMinutes(20),
+            'due_at' => now()->addMinutes(config('services.portal.default_sla_minutes', 20)),
             'source' => 'account',
             'created_by_user_id' => $user->id,
         ]);
