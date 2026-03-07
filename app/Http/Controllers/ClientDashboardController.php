@@ -43,6 +43,10 @@ class ClientDashboardController extends Controller
             return back()->with('error', 'No client found to associate this order with.');
         }
 
+        if ($client->status === 'suspended' || $client->orders()->count() >= $client->slots) {
+            return back()->with('error', 'Insufficient credits or account suspended. Please contact Admin.');
+        }
+
         $request->validate([
             'files.*' => 'required|file|mimes:pdf,doc,docx,zip|max:102400', // 100MB max
             'files' => 'required|array|min:1'
@@ -61,11 +65,21 @@ class ClientDashboardController extends Controller
         ]);
 
         foreach ($request->file('files') as $file) {
-            $path = $file->store('orders/' . $order->id);
+            // Get the actual name of the file the client uploaded
+            $originalName = $file->getClientOriginalName();
+
+            // Store it inside the order's folder using the original name
+            $path = $file->storeAs('orders/' . $order->id, $originalName);
+
             OrderFile::create([
                 'order_id' => $order->id,
                 'file_path' => $path,
             ]);
+        }
+
+        $updatedCount = $client->orders()->count();
+        if ($updatedCount >= $client->slots) {
+            $client->update(['status' => 'suspended']);
         }
 
         return redirect()->route('client.dashboard')->with('success', 'Order created successfully. Tracking ID: ' . $tokenView);

@@ -24,6 +24,10 @@ class OrderController extends Controller
         $link = ClientLink::where('token', $token)->where('is_active', true)->with('client')->firstOrFail();
         $client = $link->client;
 
+        if ($client->status === 'suspended' || $client->orders()->count() >= $client->slots) {
+            return back()->with('error', 'Insufficient credits or account suspended. Please contact Admin.');
+        }
+
         $request->validate([
             'files.*' => 'required|file|mimes:pdf,doc,docx,zip|max:102400', // 100MB max
             'files' => 'required|array|min:1'
@@ -47,6 +51,11 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'file_path' => $path,
             ]);
+        }
+
+        $updatedCount = $client->orders()->count();
+        if ($updatedCount >= $client->slots) {
+            $client->update(['status' => 'suspended']);
         }
 
         return redirect()->route('client.track', $tokenView);

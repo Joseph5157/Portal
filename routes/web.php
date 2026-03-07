@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:vendor'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('/orders/{order}/claim', [DashboardController::class, 'claim'])->name('orders.claim');
+        Route::post('/orders/{order}/unclaim', [DashboardController::class, 'unclaim'])->name('orders.unclaim');
         Route::post('/orders/{order}/status', [DashboardController::class, 'updateStatus'])->name('orders.status');
         Route::post('/orders/{order}/report', [DashboardController::class, 'uploadReport'])->name('orders.report');
         Route::get('/orders/{order}/files/{file}', [DashboardController::class, 'downloadFile'])->name('orders.files.download');
@@ -40,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/accounts/store', [AdminController::class, 'storeAccount'])->name('accounts.store');
+    Route::resource('/matrix', \App\Http\Controllers\ClientMatrixController::class)->only(['index', 'update']);
+    Route::post('/matrix/{client}/refill', [\App\Http\Controllers\ClientMatrixController::class, 'refill'])->name('matrix.refill');
 });
 
 Route::middleware('auth')->group(function () {

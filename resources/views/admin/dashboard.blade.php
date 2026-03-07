@@ -21,7 +21,7 @@
         @endif
         <!-- Admin Header -->
         <nav
-            class="flex justify-between items-center px-10 py-6 border-b border-white/5 bg-[#0a0a0c]/50 backdrop-blur-xl sticky top-0 z-50">
+            class="flex justify-between items-center px-10 py-6 border-b border-white/5 bg-[#0a0a0c]/50 sticky top-0 z-50">
             <div class="flex items-center gap-4">
                 <div
                     class="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20">
@@ -58,6 +58,16 @@
                         class="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 border border-red-500/20">
                         <i data-lucide="command" class="w-5 h-5"></i>
                     </div>
+
+                    <div class="h-8 w-px bg-white/5 mx-2"></div>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" title="Logout"
+                            class="w-10 h-10 bg-red-600/10 hover:bg-red-600/20 rounded-full flex items-center justify-center text-red-500 border border-red-600/20 transition-all">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
@@ -209,7 +219,7 @@
                                 <div class="relative pl-8 group">
                                     <div
                                         class="absolute left-0 top-1 w-1.5 h-1.5 bg-red-500 rounded-full z-10 
-                                                        @if($order->status == 'delivered') bg-green-500 @elseif($order->status == 'pending') bg-amber-500 @endif">
+                                                                    @if($order->status == 'delivered') bg-green-500 @elseif($order->status == 'pending') bg-amber-500 @endif">
                                     </div>
                                     <div class="absolute left-[2px] top-4 w-px h-full bg-white/5 group-last:hidden"></div>
 
@@ -258,8 +268,8 @@
                         automatically provision client profiles.</p>
                 </button>
 
-                <div
-                    class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group">
+                <a href="{{ route('admin.matrix.index') }}"
+                    class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group block">
                     <div
                         class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 group-hover:text-red-500 transition-colors">
                         <i data-lucide="building" class="w-6 h-6"></i>
@@ -267,7 +277,7 @@
                     <h3 class="text-white font-bold">Client Matrix</h3>
                     <p class="text-xs text-slate-600 font-medium">Audit client usage, adjust credit limits and manage
                         subscriptions.</p>
-                </div>
+                </a>
 
                 <div
                     class="bg-[#121212] border border-white/5 p-10 rounded-[2.5rem] space-y-4 hover:border-red-500/20 transition-all cursor-pointer group">

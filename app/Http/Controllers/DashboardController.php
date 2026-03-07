@@ -24,6 +24,16 @@ class DashboardController extends Controller
             return $this->adminDashboard();
         }
 
+        // Auto-Release Logic
+        Order::where('status', 'processing')
+            ->whereNotNull('claimed_by')
+            ->where('due_at', '<', now())
+            ->update([
+                'claimed_by' => null,
+                'claimed_at' => null,
+                'status' => 'pending'
+            ]);
+
         // Vendor Dashboard Logic
         $stats = [
             'available_pool' => Order::where('status', 'pending')->whereNull('claimed_by')->count(),
@@ -101,10 +111,26 @@ class DashboardController extends Controller
     {
         try {
             $this->workflowService->claim($order, auth()->user());
+            $order->update(['claimed_at' => now()]);
             return back()->with('success', 'Order claimed successfully.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    public function unclaim(Order $order)
+    {
+        if ($order->claimed_by !== auth()->id()) {
+            return back()->with('error', 'You cannot release an order you have not claimed.');
+        }
+
+        $order->update([
+            'claimed_by' => null,
+            'claimed_at' => null,
+            'status' => 'pending' // Return to pool
+        ]);
+
+        return back()->with('success', 'Order returned to the available pool.');
     }
 
     public function updateStatus(Request $request, Order $order)

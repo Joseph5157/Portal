@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'u/*', // Exempt public link uploads from CSRF (they use token auth)
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

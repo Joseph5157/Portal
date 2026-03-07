@@ -211,6 +211,17 @@
                                                     Start
                                                 </button>
                                             </form>
+                                            <form action="{{ route('orders.unclaim', $order) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all border border-red-500/20">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                                    </svg>
+                                                    Release
+                                                </button>
+                                            </form>
                                         @else
                                             <button
                                                 onclick="document.getElementById('upload-modal-{{ $order->id }}').classList.remove('hidden')"
@@ -221,6 +232,17 @@
                                                 </svg>
                                                 Upload
                                             </button>
+                                            <form action="{{ route('orders.unclaim', $order) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all border border-red-500/20">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                                    </svg>
+                                                    Release
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>
