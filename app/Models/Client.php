@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
-    protected $fillable = ['name', 'slots', 'plan_expiry', 'status'];
+    protected $fillable = ['name', 'slots', 'price_per_file', 'plan_expiry', 'status'];
 
     protected $casts = [
         'plan_expiry' => 'datetime',
@@ -20,5 +20,10 @@ class Client extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function topupRequests()
+    {
+        return $this->hasMany(TopupRequest::class);
     }
 }

@@ -15,7 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
         $middleware->validateCsrfTokens(except: [
-            'u/*', // Exempt public link uploads from CSRF (they use token auth)
+            'u/*',               // Exempt public link uploads (use token auth)
+            'client/dashboard/upload', // Exempt client dashboard uploads (session-protected)
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

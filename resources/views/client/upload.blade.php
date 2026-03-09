@@ -35,7 +35,7 @@
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white">T</div>
             <div>
-                <h1 class="text-sm font-bold text-white leading-tight">TurniScan User</h1>
+                <h1 class="text-sm font-bold text-white leading-tight">PlagExpert User</h1>
                 <p class="text-[10px] text-slate-500 uppercase tracking-tighter">ID: {{ strtoupper($client->name) }}</p>
             </div>
         </div>
@@ -54,7 +54,7 @@
 
     <main class="max-w-6xl mx-auto py-10 px-6 space-y-8">
 
-        @if($client->slots <= 0)
+        @if(($client->slots - $client->orders()->count()) <= 0)
             <!-- Limit Reached Banner -->
             <div class="bg-[#2a1b00] border border-[#ffd700]/10 p-4 rounded-xl flex items-center gap-4">
                 <div class="w-10 h-10 bg-[#ffd700]/10 rounded-full flex items-center justify-center text-[#ffd700]">
@@ -87,8 +87,13 @@
                     </div>
 
                     <div class="space-y-1">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Available Slots</p>
-                        <h2 class="text-7xl font-bold text-white tracking-tighter">{{ $client->slots }}</h2>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Credits Used:
+                            {{ $client->orders()->count() }}
+                        </p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Remaining Slots</p>
+                        <h2 class="text-7xl font-bold text-white tracking-tighter">
+                            {{ max(0, $client->slots - $client->orders()->count()) }}
+                        </h2>
                     </div>
 
                     <div class="mt-8">
@@ -146,7 +151,7 @@
                     </div>
 
                     <button disabled
-                        class="w-full mt-8 py-4 bg-red-600/10 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-600/20 {{ $client->slots > 0 ? 'hidden' : '' }}">
+                        class="w-full mt-8 py-4 bg-red-600/10 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-600/20 {{ ($client->slots - $client->orders()->count()) > 0 ? 'hidden' : '' }}">
                         Slot Limit Reached
                     </button>
                 </div>
@@ -196,11 +201,12 @@
                                     </div>
                                 </td>
                                 <td class="py-6">
-                                    <span class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border
-                                                        @if($order->status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
-                                                        @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
-                                                        @elseif($order->status == 'processing') bg-blue-500/5 text-blue-400 border-blue-500/10
-                                                        @else bg-slate-500/5 text-slate-400 border-slate-500/10 @endif">
+                                    <span
+                                        class="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border
+                                                                @if($order->status == 'delivered') bg-green-500/5 text-green-500 border-green-500/10
+                                                                @elseif($order->computed_status == 'overdue') bg-red-500/5 text-red-500 border-red-500/10
+                                                                @elseif($order->status == 'processing') bg-blue-500/5 text-blue-400 border-blue-500/10
+                                                                @else bg-slate-500/5 text-slate-400 border-slate-500/10 @endif">
                                         @if($order->status == 'delivered')
                                             Ready
                                         @elseif($order->computed_status == 'overdue')
@@ -310,7 +316,7 @@
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Developer - Sandesh Kushwaha</p>
             <p
                 class="max-w-4xl mx-auto text-[8px] text-slate-600 leading-relaxed font-medium uppercase tracking-[0.1em]">
-                LEGAL NOTICE: TurniScan is an independent platform provided by DigiSandesh. We operate strictly as a
+                LEGAL NOTICE: PlagExpert is an independent platform provided by DigiSandesh. We operate strictly as a
                 third-party intermediary reseller to facilitate access to plagiarism and AI detection services for
                 educational and personal use. We are NOT affiliated, associated, authorized, endorsed by, or in any way
                 officially connected with Turnitin, LLC, or any of its subsidiaries or its affiliates. Our

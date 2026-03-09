@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Dashboard' }} — TurniScan Agent</title>
+    <title>{{ $title ?? 'Dashboard' }} — PlagExpert Agent</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -64,7 +64,7 @@
                         class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center font-bold text-white text-sm">
                         T</div>
                     <div>
-                        <p class="text-sm font-bold text-white leading-none">TurniScan</p>
+                        <p class="text-sm font-bold text-white leading-none">PlagExpert</p>
                         <p class="text-[9px] text-slate-500 mt-0.5 uppercase tracking-widest">Agent Portal</p>
                     </div>
                 </div>

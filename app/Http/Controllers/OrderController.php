@@ -24,8 +24,9 @@ class OrderController extends Controller
         $link = ClientLink::where('token', $token)->where('is_active', true)->with('client')->firstOrFail();
         $client = $link->client;
 
-        if ($client->status === 'suspended' || $client->orders()->count() >= $client->slots) {
-            return back()->with('error', 'Insufficient credits or account suspended. Please contact Admin.');
+        $totalOrders = $client->orders()->count();
+        if ($client->status === 'suspended' || $totalOrders >= $client->slots) {
+            return back()->with('error', 'Insufficient credits. You have reached your limit of ' . $client->slots . ' files. Please contact Admin for a refill.');
         }
 
         $request->validate([

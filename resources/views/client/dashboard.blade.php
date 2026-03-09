@@ -11,8 +11,6 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #08080a;
-            color: #a0a0ab;
         }
 
         .premium-card {
@@ -47,16 +45,16 @@
     </style>
 </head>
 
-<body class="min-h-screen flex">
+<body class="h-screen flex bg-[#050505] text-[#a0a0ab] overflow-hidden">
     <!-- Sidebar -->
-    <aside class="w-64 border-r border-white/5 flex flex-col pt-8 bg-[#0a0a0c]">
+    <aside class="w-64 flex-shrink-0 h-full border-r border-white/5 flex flex-col pt-8 bg-[#0a0a0c]">
         <div class="px-8 mb-12">
             <div class="flex items-center gap-3">
                 <div
                     class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                     <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
                 </div>
-                <span class="font-bold text-white text-lg tracking-tight">TurniScan</span>
+                <span class="font-bold text-white text-lg tracking-tight">PlagExpert</span>
             </div>
         </div>
 
@@ -116,7 +114,8 @@
                 <div class="flex items-center gap-3 pr-6 border-r border-white/5">
                     <div class="text-right">
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Client ID</p>
-                        <p class="text-xs font-mono text-indigo-400">{{ strtoupper($client->name) }}</p>
+                        <p class="text-xs font-mono text-indigo-400">ID-{{ str_pad($client->id, 4, '0', STR_PAD_LEFT) }}
+                        </p>
                     </div>
                     <div
                         class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-500 ring-4 ring-indigo-500/5">
@@ -140,24 +139,68 @@
                 </div>
             @endif
 
+            {{-- Credit Status Badge --}}
+            @php
+                $remaining = $client->slots - $client->orders()->count();
+            @endphp
+
+            @if($remaining > 10)
+                <div class="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-green-500/20 bg-green-500/5">
+                    <span
+                        class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] flex-shrink-0"></span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.25em] text-green-500/70">Credit Status</p>
+                        <p class="text-sm font-bold text-green-400">Credits Available: <span
+                                class="font-mono">{{ $remaining }}</span></p>
+                    </div>
+                </div>
+            @elseif($remaining > 0)
+                <div class="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+                    <span
+                        class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)] flex-shrink-0 animate-pulse"></span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.25em] text-amber-500/70">Credit Status</p>
+                        <p class="text-sm font-bold text-amber-400">Low Credits: {{ $remaining }} remaining</p>
+                    </div>
+                    <span
+                        class="ml-auto text-[9px] font-black uppercase tracking-widest text-amber-500/60 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-lg">Low</span>
+                </div>
+            @else
+                <div class="flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-red-500/30 bg-red-500/5">
+                    <span
+                        class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] flex-shrink-0 animate-pulse"></span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.25em] text-red-500/70">Credit Status</p>
+                        <p class="text-sm font-bold text-red-400">0 Credits — Please Top Up</p>
+                    </div>
+                    <span
+                        class="ml-auto text-[9px] font-black uppercase tracking-widest text-red-500/60 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded-lg">Depleted</span>
+                </div>
+            @endif
+
             <!-- Dashboard Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="premium-card p-6 rounded-3xl relative overflow-hidden group">
                     <div class="flex justify-between items-start mb-4">
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Usage Credits</p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Credits Used:
+                            <span class="font-mono">{{ $client->orders()->count() }}</span>
+                        </p>
                         <div
                             class="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-500">
                             <i data-lucide="coins" class="w-4 h-4"></i>
                         </div>
                     </div>
                     <div class="relative z-10">
-                        <h3 class="text-4xl font-bold text-white mb-1">{{ $client->slots }}</h3>
-                        <p class="text-xs text-slate-500">Available Slots</p>
+                        <h3 class="text-4xl font-bold text-white mb-1 font-mono">
+                            {{ max(0, $client->slots - $client->orders()->count()) }}
+                        </h3>
+                        <p class="text-xs text-slate-500">Remaining Credits</p>
                     </div>
                     <div class="mt-6 flex gap-2">
-                        <button
-                            class="px-3 py-1.5 bg-indigo-500 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-400 transition-colors">TOP
-                            UP</button>
+                        <button onclick="document.getElementById('topup-modal').classList.remove('hidden')"
+                            class="px-3 py-1.5 bg-indigo-500 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-400 transition-colors">
+                            TOP UP
+                        </button>
                     </div>
                 </div>
 
@@ -168,7 +211,7 @@
                             <i data-lucide="activity" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <h3 class="text-4xl font-bold text-white mb-1">
+                    <h3 class="text-4xl font-bold text-white mb-1 font-mono">
                         {{ $orders->where('status', '!=', 'delivered')->count() }}
                     </h3>
                     <p class="text-xs text-slate-500">In Processing Flow</p>
@@ -276,9 +319,9 @@
                                     <div class="text-right">
                                         <span
                                             class="inline-block px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.15em]
-                                                            @if($order->status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
-                                                            @elseif($order->is_overdue) bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
-                                                            @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
+                                                                                        @if($order->status == 'delivered') bg-green-500/10 text-green-500 border border-green-500/10 status-glow-delivered
+                                                                                        @elseif($order->is_overdue) bg-red-500/10 text-red-500 border border-red-500/10 status-glow-overdue
+                                                                                        @else bg-blue-500/10 text-blue-400 border border-blue-500/10 status-glow-pending @endif">
                                             @if($order->status == 'delivered')
                                                 Ready
                                             @elseif($order->status == 'processing')
@@ -298,14 +341,15 @@
                                             @if($order->report?->ai_percentage !== null)
                                                 <div class="text-center">
                                                     <p class="text-[8px] font-bold text-slate-700 uppercase">AI Score</p>
-                                                    <p class="text-xs font-bold text-red-400">
-                                                        {{ (int) $order->report?->ai_percentage }}%</p>
+                                                    <p class="text-xs font-bold text-red-400 font-mono">
+                                                        {{ (int) $order->report?->ai_percentage }}%
+                                                    </p>
                                                 </div>
                                             @endif
                                             @if($order->report?->plag_percentage !== null)
                                                 <div class="text-center">
                                                     <p class="text-[8px] font-bold text-slate-700 uppercase">Plagiarism</p>
-                                                    <p class="text-xs font-bold text-blue-400">
+                                                    <p class="text-xs font-bold text-blue-400 font-mono">
                                                         {{ (int) $order->report?->plag_percentage }}%
                                                     </p>
                                                 </div>
@@ -354,7 +398,7 @@
         </div>
 
         <footer class="p-10 text-center border-t border-white/5 bg-[#0a0a0c]">
-            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">TurniScan • Advanced Plagiarism
+            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">PlagExpert • Advanced Plagiarism
                 Prevention</p>
         </footer>
     </main>
@@ -393,6 +437,125 @@
 
         setInterval(updateTimers, 1000);
         updateTimers();
+    </script>
+    {{-- ── Top-up Modal ─────────────────────────────────────────────────── --}}
+    <div id="topup-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-[#0a0a0c] border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl"
+            onclick="event.stopPropagation()">
+
+            {{-- Header --}}
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold">Request Top-up</h3>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Add Credits to Your
+                            Account</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('topup-modal').classList.add('hidden')"
+                    class="text-slate-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('client.topup.store') }}" method="POST" class="space-y-6">
+                @csrf
+
+                {{-- Package Selector --}}
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Select
+                        Package</label>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button type="button" onclick="setSlots(50)"
+                            class="slot-preset py-3 bg-white/5 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/30 rounded-xl text-xs font-bold text-slate-300 hover:text-indigo-400 transition-all">
+                            50 Slots
+                        </button>
+                        <button type="button" onclick="setSlots(100)"
+                            class="slot-preset py-3 bg-white/5 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/30 rounded-xl text-xs font-bold text-slate-300 hover:text-indigo-400 transition-all">
+                            100 Slots
+                        </button>
+                        <button type="button" onclick="setSlots(200)"
+                            class="slot-preset py-3 bg-white/5 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/30 rounded-xl text-xs font-bold text-slate-300 hover:text-indigo-400 transition-all">
+                            200 Slots
+                        </button>
+                    </div>
+                    <input type="number" name="amount_requested" id="slot-input" min="1"
+                        placeholder="Or enter custom amount..." oninput="updatePrice(this.value)"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors placeholder-slate-600"
+                        required>
+                </div>
+
+                {{-- Price Preview --}}
+                <div
+                    class="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Payable</p>
+                        <p id="price-display" class="text-2xl font-bold text-white mt-0.5 font-mono">₹0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Rate</p>
+                        <p class="text-xs text-indigo-400 font-bold font-mono">
+                            ₹{{ number_format($client->price_per_file, 0) }} /
+                            slot</p>
+                    </div>
+                </div>
+
+                {{-- UPI Payment Instructions --}}
+                <div class="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-600">Payment Instructions</p>
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center text-green-500 flex-shrink-0">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">UPI ID</p>
+                            <p class="text-sm font-bold text-white font-mono">your-upi@ybl</p>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-600 leading-relaxed">Send the exact amount above to the UPI ID,
+                        then paste your <span class="text-indigo-400">Transaction / UTR Reference Number</span> below.
+                        Your credits will be added after Admin verification.</p>
+                </div>
+
+                {{-- Transaction ID --}}
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Transaction
+                        / UTR Reference Number</label>
+                    <input type="text" name="transaction_id" required placeholder="e.g. 123456789012"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors placeholder-slate-600">
+                </div>
+
+                {{-- Submit --}}
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-4 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em] rounded-xl border border-indigo-600/30 transition-all flex justify-center items-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        Submit Top-up Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const pricePerSlot = {{ $client->price_per_file ?? 0 }};
+
+        function setSlots(n) {
+            document.getElementById('slot-input').value = n;
+            updatePrice(n);
+        }
+
+        function updatePrice(val) {
+            const n = parseInt(val) || 0;
+            document.getElementById('price-display').textContent = '₹' + (n * pricePerSlot).toLocaleString('en-IN');
+        }
     </script>
 </body>
 

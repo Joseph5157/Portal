@@ -43,8 +43,9 @@ class ClientDashboardController extends Controller
             return back()->with('error', 'No client found to associate this order with.');
         }
 
-        if ($client->status === 'suspended' || $client->orders()->count() >= $client->slots) {
-            return back()->with('error', 'Insufficient credits or account suspended. Please contact Admin.');
+        $totalOrders = $client->orders()->count();
+        if ($client->status === 'suspended' || $totalOrders >= $client->slots) {
+            return back()->with('error', 'Insufficient credits. You have reached your limit of ' . $client->slots . ' files. Please contact Admin for a refill.');
         }
 
         $request->validate([
